@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "COORDINATES": [30.2672, -97.7431],
+      "LOCATION_NAME": "Tesla Headquarters",
+      "DATETIME": "2025-05-23T00:00:00.000Z",
+      "NUMERICAL_DATA": 125665.0,
+      "NUMERICAL_DATA_UNIT": "employees",
+      "DESCRIPTION": "Tesla, Inc. is headquartered at 1 Tesla Road, Austin, TX, employing 125,665 full-time employees."
+    }
+  ]
+}

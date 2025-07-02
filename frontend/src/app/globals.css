@@ -1,0 +1,325 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: var(--font-fustat), Helvetica, sans-serif;
+  interpolate-size: allow-keywords;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+
+    --sidebar: #f3f3ee;
+    --text-color: #13343b;
+
+    --chart-red: 0 72% 51%;
+    --chart-green: 142 76% 36%;
+    --financial-bg: 243, 241, 238, 0.30;
+
+    /* Primary/Brand Colors */
+    --color-primary-main: #954767; /* Main brand color */
+    --color-primary-light: #f3f1ee; /* Light variant */
+    --color-primary-dark: #351321; /* Dark variant */
+    --color-primary-800: #6d2643; /* Numbered scale - darker */
+    --color-primary-600: #a05976; /* Numbered scale - medium */
+    --color-primary-400: #bf91a4; /* Numbered scale - lighter */
+    --color-primary-200: #eadae1; /* Numbered scale - very light */
+    --color-primary-150: #fcfbfa; /* Numbered scale - very light */ /* Numbered scale - light */
+    --color-primary-100: #f3f0e8;
+    /* Numbered scale - lightest */
+    /* Neutral Scale */
+
+    --color-accent-100: #e3d8dc;
+    -color-accent-200: #9b9698;
+
+    --color-neutral-900: #0a0a0a; /* Darkest gray */
+    --color-neutral-800: #191919; /* Very dark gray */
+    --color-neutral-700: #2e2e2e; /* Dark gray */
+    --color-neutral-500: #818181; /* Medium gray */
+    --color-neutral-300: #9b9698;
+    --color-neutral-200: #e9e9e9; /* Light gray */
+    --color-neutral-150: #bab9b9; /* Light gray */
+    --color-neutral-100: #f5f5f5; /* Very light gray */
+    --color-neutral-50: #fafafa; /* Nearly white */
+    --color-white: #ffffff; /* Pure white */
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --sidebar: #f3f3ee;
+    --text-color: #13343b;
+
+    --chart-red: 0 72% 51%;
+    --chart-green: 142 76% 36%;
+    --financial-bg: 60 9% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+/* .active-menu {
+  border-left: 4px solid transparent;
+  border-image-source: linear-gradient(
+    180deg,
+    rgba(126, 214, 211, 0) 0%,
+    #7ed6d3 47.36%,
+    rgba(126, 214, 211, 0) 91.67%
+  );
+  border-image-slice: 1;
+}
+.active-menu {
+  filter: brightness(0) saturate(100%);
+} */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px; /* Width of the scrollbar */
+  height: 12px; /* Height of horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Background of the scrollbar track */
+  border-radius: 14px; /* Rounded corners for track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #a3a3a3; /* Color of the scrollbar thumb */
+  border-radius: 14px; /* Rounded corners for the thumb */
+  border: 2px solid transparent; /* Border to create the inset effect */
+  background-clip: content-box; /* Makes the border effect visible */
+  transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #6f6f6f; /* Darker color when the thumb is hovered */
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #555555; /* Even darker color when the thumb is active (clicked) */
+}
+
+.related-question:hover {
+  cursor: pointer;
+}
+
+.related-question:hover p,
+.related-question:hover button svg {
+  color: var(--color-primary-main);
+}
+
+/* .blinking-cursor:last-child div {
+  animation: blink 1s infinite;
+  
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+    border-width: 2;
+  }
+  50% {
+    opacity: 0;
+    border-width: 0;
+  }
+} */
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: 10px;
+  height: 10px;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  background: var(--color-primary-main);
+  box-shadow: 0 0 0 0 var(--color-primary-main);
+  animation: l1 1s infinite;
+}
+
+@keyframes l1 {
+  100% {
+    box-shadow: 0 0 0 10px rgb(149, 71, 103, 0.025);
+  }
+}
+
+/* Citation Card */
+
+.citation-card:hover h4 {
+  color: var(--color-primary-main);
+}
+
+.citation-card:hover {
+  background: var(--color-primary-light);
+  transition: all 0.3s ease;
+}
+
+.rtl-content {
+  text-align: right;
+  direction: rtl;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.time-period-tab {
+  @apply px-2 py-1 cursor-pointer font-medium;
+}
+
+.time-period-tab.active {
+  @apply text-black border-b-2 border-black;
+}
+
+.chart-container {
+  @apply relative mt-4;
+}
+
+.price-change-down {
+  @apply text-red-600;
+}
+
+.price-change-up {
+  @apply text-green-600;
+}
+
+.stock-details-grid {
+  @apply grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 gap-4 mb-2 text-sm;
+}
+
+.stock-detail-item {
+  @apply flex flex-col;
+}
+
+.stock-detail-label {
+  @apply text-xs text-[#6B7280];
+}
+
+.stock-detail-value {
+  @apply text-xs text-[#0A0A0A] font-medium;
+}
+
+@keyframes _fade_4f9by_7 {
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation: _fade_4f9by_7 var(--duration, 0.5s)
+    cubic-bezier(0.37, 0.55, 0.86, 0.88) forwards var(--delay, 0.5s);
+  animation-iteration-count: 1;
+  opacity: 0;
+}
+/* @media (prefers-reduced-motion:reduce) {
+  ._fadeIn_4f9by_7 {
+      --duration: 0.5s;
+      opacity: 1
+  }
+} */
+
+.animate-text {
+  animation: fadeIn 0.5s ease-in;
+  display: inline; /* Ensure it flows with old content */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* @keyframes streamingFade {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+.streamingContent {
+  opacity: 1;
+  animation: streamingFade 0.3s ease-in-out;
+} */
+
+/* Loader CSS */
+
+/* HTML: <div class="loader"></div> */
+
+
+thead tr {
+  @apply bg-[#F3F1EE];
+}
