@@ -20,20 +20,24 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t container101.azurecr.io/insight-agent:latest .
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/insight-agent:latest .
 
-      - name: Push Docker image to ACR
+      - name: Docker Login to ACR
         run: |
           echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_NAME }}.azurecr.io \
             --username ${{ secrets.ACR_USERNAME }} --password-stdin
-          docker push container101.azurecr.io/insight-agent:latest
+
+      - name: Push Docker image to ACR
+        run: |
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/insight-agent:latest
 
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v1
         with:
           app-name: insight-agent
           resource-group: container
-          image: container101.azurecr.io/insight-agent:latest
+          image: ${{ secrets.ACR_NAME }}.azurecr.io/insight-agent:latest
+
 
 
 
