@@ -1,49 +1,38 @@
-name: Trigger auto deployment for agent
+name: Deploy to Azure Container Apps
 
-# When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
   push:
-    branches: 
-      [ main ]
-    paths:
-    - '**'
-    - '.github/workflows/agent-AutoDeployTrigger-8970bac4-5525-4079-8bea-5faee0fbde8a.yml'
-
-  # Allow manual trigger 
-  workflow_dispatch:      
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
 
     steps:
-      - name: Checkout to the branch
-        uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v3
 
-      - name: Azure Login
-        uses: azure/login@v2
+      - name: Log in to Azure
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AGENT_AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AGENT_AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AGENT_AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
+      - name: Build Docker image
+        run: |
+          docker build -t container101.azurecr.io/insight-agent:latest .
+
+      - name: Push Docker image to ACR
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login container101.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password-stdin
+          docker push container101.azurecr.io/insight-agent:latest
+
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
         with:
-          appSourcePath: ${{ github.workspace }}
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: 
-          registryUsername: ${{ secrets.AGENT_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.AGENT_REGISTRY_PASSWORD }}
-          containerAppName: agent
-          resourceGroup: agent
-          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          app-name: insight-agent
+          resource-group: container
+          image: container101.azurecr.io/insight-agent:latest
+
 
 
