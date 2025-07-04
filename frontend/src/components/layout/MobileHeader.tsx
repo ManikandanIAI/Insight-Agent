@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
-import SpeedComponent from "./components/ServerSpeed";
 interface IMobileHeaderProps {
   onMenuClick: () => void;
   // onPlusClick: () => void;
@@ -33,9 +32,6 @@ const MobileHeader: React.FC<IMobileHeaderProps> = ({ onMenuClick }) => {
         <h2 className="text-2xl leading-normal tracking-normal font-medium">
           Insight Agent
         </h2>
-        <div className="absolute translate-x-1/2  -bottom-4">
-          <SpeedComponent />
-        </div>
       </div>
       <div className="flex items-center gap-x-2">
         <Link href="/" className="">

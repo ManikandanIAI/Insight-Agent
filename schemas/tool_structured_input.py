@@ -23,7 +23,7 @@ class WebPageInfoSchema(BaseModel):
 
 class TavilyToolSchema(BaseModel):
     query: List[str] = Field(description="A list of well structured query designed to efficiently Google search finance or market related information. Each query in the list should be a bit different from the other to get a variety of search results. At max there should be only four queries.")
-    search_topic: Optional[Literal['news', 'general', 'finance']] = Field(description="Select different search topics depending on query.")
+    # search_topic: Optional[Literal['news', 'general', 'finance']] = Field(description="Select different search topics depending on query.")
     time_range: Optional[Literal['day', 'week', 'month', 'year']] = Field(description="Select different search time range depending on query.")
     explanation: str = Field(description="Provide short reasoning for calling this tool.")
 

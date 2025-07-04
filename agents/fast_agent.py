@@ -159,7 +159,7 @@ async def process_fast_agent_input(user_id: str, session_id: str, user_query: st
 
         yield final_data_event
 
-        yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}}
+        yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}, 'notification': True, 'suggestions': True}
 
     except Exception as e:
         error_msg = f"Error in agent processing: {str(e)}"
@@ -173,7 +173,7 @@ async def process_fast_agent_input(user_id: str, session_id: str, user_query: st
             await mongodb.update_session_history_in_db(session_id, user_id, message_id, user_query, final_response_content or error_msg, local_time, timezone)
 
         store_current_message(error_event)
-        yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}}
+        yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}, 'notification': False, 'suggestions': False}
 
     finally:
         pass

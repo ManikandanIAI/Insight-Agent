@@ -73,6 +73,7 @@ import { ChatSharingDialog } from "./ChatSharingDialog";
 import { uniqueId } from "lodash";
 import FilePreviewDialog from "./DocumentPreviewModal";
 import { init } from "next/dist/compiled/webpack/webpack";
+import Button from "@/app/(dashboard)/components/Button";
 // import { mapData } from "@/data/random_map_data";
 // import MapView from "@/app/map-2/page";
 // import MapView from "@/components/maps/MapView";
@@ -165,6 +166,8 @@ const SpecificChat = () => {
     string[]
   >([]);
 
+  const [showElaborateSummarize, setShowElaborateSummarize] = useState(false);
+
   const [reportMessageId, setReportMessageId] = useState<string | null>(null);
   const [reportResponseId, setReportResponseId] = useState<string | null>(null);
 
@@ -192,16 +195,15 @@ const SpecificChat = () => {
 
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [isStopGeneratingResponse, setIsStopGeneratingResponse] = useState(false);
-  // const [hexagonData, setHexagonData] = useState<MapPoint[]>([]);
+  const [showActionButtons, setShowActionButtons] = useState(false);
 
-  // useEffect(() => {
-  //   loadHexagonLayerData().then(setHexagonData);
-  // }, []);
+  const [elaborateWithExample, setElaborateWithExample] = useState("with");
+  const [summarizeWithExample, setSummarizeWithExample] = useState("with");
 
   const MAX_HEIGHT = uploadedFileData.length > 3 ? 302 : uploadedFileData.length > 0 ? 247 : 200;
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-   const prevMessagesLength = useRef(0);
+  const prevMessagesLength = useRef(0);
 
   const handleAutoTextAreaResize = (ta: HTMLTextAreaElement) => {
     ta.style.height = "auto";
@@ -291,6 +293,9 @@ const SpecificChat = () => {
 
         if (message.feedback) {
           newMessages[index].feedback = message.feedback;
+        }
+        if (message.doc_ids && message.doc_ids.length > 0) {
+          newMessages[index].files = message.doc_ids;
         }
 
         // Add research message if exists
@@ -505,9 +510,11 @@ const SpecificChat = () => {
         };
         return updatedMessages;
       });
-    } else if (data.type === "complete" && data.notification === true) {
+    } else if (data.type === "complete") {
       setIsProcessing(false);
+      setShowElaborateSummarize(data.suggestions ? true : false);
 
+    } else if (data.type === "complete" && data.notification === true) {
       sendNotification();
       if (eventSourceRef.current) {
         // console.log(eventSourceRef.current)
@@ -598,14 +605,14 @@ const SpecificChat = () => {
 
 
 
-useEffect(() => {
-  if (messages.length > prevMessagesLength.current) {
-    if (latestQueryRef.current) {
-      latestQueryRef.current.scrollIntoView({ behavior: "smooth" });
+  useEffect(() => {
+    if (messages.length > prevMessagesLength.current) {
+      if (latestQueryRef.current) {
+        latestQueryRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
-  }
-  prevMessagesLength.current = messages.length;
-}, [messages]);
+    prevMessagesLength.current = messages.length;
+  }, [messages]);
 
 
 
@@ -614,7 +621,9 @@ useEffect(() => {
     messageId = "",
     retry = false,
     isFirstQuery = true,
-    agentValue = currentSearchMode
+    agentValue: string = currentSearchMode,
+    isElaborate = false,
+    isWithExample = false
   ) => {
     const userId = localStorage.getItem("user_id");
     const access_token = Cookies.get("access_token");
@@ -660,6 +669,8 @@ useEffect(() => {
           uploadedFileData.length > 0
             ? uploadedFileData.map((file, index) => file.generatedFileId)
             : initialUploadedDocument,
+        is_elaborate: isElaborate,
+        is_example: isWithExample
       };
 
       const response = await fetch(API_ENDPOINTS.QUERY_STREAM, {
@@ -910,6 +921,7 @@ useEffect(() => {
           error,
           chart_data,
           map_data,
+          feedback,
           ...rest
         } = message;
         return rest; // return message without 'response'
@@ -1007,8 +1019,9 @@ useEffect(() => {
           ...updatedMessages[messageIndex],
           feedback: {
             liked: islike ? "yes" : "no",
-          }};
-          return updatedMessages;
+          }
+        };
+        return updatedMessages;
       });
 
       console.log("Feedback sent:", response);
@@ -1296,6 +1309,48 @@ useEffect(() => {
 
 
 
+
+  const handleElaborateResponse = (exampleStatus: string) => {
+    setElaborateWithExample(exampleStatus);
+    setShowElaborateSummarize(false);
+    setIsProcessing(true);
+
+    const updatedQueryHeading = `Elaborate: ${queryHeading}`;
+    const isExample = exampleStatus === "with" ? true : false;
+
+    setQueryHeading(updatedQueryHeading);
+    startEventStream2(
+      updatedQueryHeading,
+      "",
+      false,
+      false,
+      "summarizer",
+      true,
+      isExample
+    )
+  }
+
+  const handleSummarizeResponse = (exampleStatus: string) => {
+    setSummarizeWithExample(exampleStatus);
+    setShowElaborateSummarize(false);
+    setIsProcessing(true);
+    const isExample = exampleStatus === "with" ? true : false;
+
+    const updatedQueryHeading = `Summarize: ${queryHeading}`;
+    setQueryHeading(updatedQueryHeading);
+    startEventStream2(
+      updatedQueryHeading,
+      "",
+      false,
+      false,
+      "summarizer",
+      false,
+      isExample
+    )
+  }
+
+
+
   return (
     <div className="w-full flex  h-[calc(100vh-4.75rem)] lg:h-screen">
       <div className="w-full h-full lg:py-6 pb-4 lg:pr-8 flex flex-col">
@@ -1311,8 +1366,8 @@ useEffect(() => {
                 return (
                   <div
                     key={index}
-                    ref={index===messages.length-1?latestQueryRef:null}
-                    className="w-full grid grid-cols-1 2xl:grid-cols-10"
+                    ref={index === messages.length - 1 ? latestQueryRef : null}
+                    className="w-full message-container grid grid-cols-1 2xl:grid-cols-10"
                   >
                     <div className="flex-grow w-full mb-4 lg:pr-5 2xl:col-span-6 col-span-1">
                       {/* Render if message.query exists */}
@@ -1377,7 +1432,11 @@ useEffect(() => {
                             onClick={() =>
                               handleToggleResearchData(message.message_id)
                             }
-                            className="flex items-center justify-between cursor-pointer gap-x-2"
+                            className={cn(
+                              "flex justify-between items-center cursor-pointer",
+                              toggleResearchData.includes(message.message_id)
+                              && "pb-4"
+                            )}
                           >
                             {isProcessing &&
                               message.message_id === messageId ? (
@@ -1453,8 +1512,9 @@ useEffect(() => {
                                 </p>
                               )}
 
+
                               <ChevronDown
-                                className={`text-black sm:size-6 size-5 flex-shrink-0 transition-transform ${toggleResearchData.includes(
+                                className={`text-black sm:size-5 size-5 flex-shrink-0 transition-transform ${toggleResearchData.includes(
                                   message.message_id
                                 )
                                   ? "transform rotate-180"
@@ -1595,269 +1655,338 @@ useEffect(() => {
                       )}
 
                       {message.response && (
-                        <div className="py-2">
-                          {(() => {
-                            const content = message.response.content.toString();
-                            // Detect if content contains RTL characters (Arabic, Hebrew, Persian, etc.)
-                            const isRtl =
-                              /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F]/.test(
-                                content
+                        <>
+                          <div className="py-2">
+                            {(() => {
+                              const content = message.response.content.toString();
+                              // Detect if content contains RTL characters (Arabic, Hebrew, Persian, etc.)
+                              const isRtl =
+                                /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F]/.test(
+                                  content
+                                );
+
+                              return (
+                                <div
+
+                                  className={cn({ "font-[Arial]": isRtl }, "message-response")}
+                                  dir={isRtl ? "rtl" : "ltr"}
+                                >
+                                  <Markdown allowHtml={true} latex={false}>
+                                    {content}
+                                  </Markdown>
+                                </div>
                               );
+                            })()}
 
-                            return (
-                              <div
-                                className={cn({ "font-[Arial]": isRtl })}
-                                dir={isRtl ? "rtl" : "ltr"}
-                              >
-                                <Markdown allowHtml={true} latex={false}>
-                                  {content}
-                                </Markdown>
-                              </div>
-                            );
-                          })()}
-
-                          {
-                            message.response && !(isProcessing) && (
-                              <div className="flex items-center sm:justify-between justify-center flex-wrap gap-y-6 gap-x-2 my-6">
-                                <div>
-                                  {message.sources &&
-                                    message.sources.length > 0 && (
-                                      <div className="">
-                                        <Sources
-                                          data={message.sources}
-                                          onHandleCitationData={() =>
-                                            handleOpen(index)
-                                          }
-                                        />
-                                      </div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center text-sm gap-x-4">
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger className="focus:border-none">
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Repeat
-                                              strokeWidth={1.5}
-                                              className="cursor-pointer size-[18px]"
-                                            />
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>Retry</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="ml-5">
-                                      <DropdownMenuLabel>
-                                        Retry with
-                                      </DropdownMenuLabel>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuRadioGroup
-                                        value={currentSearchMode}
-                                        onValueChange={(value: string) =>
-                                          handleRewriteAnalysis(
-                                            value as SearchMode,
-                                            message.message_id,
-                                            message.query
-                                          )
-                                        }
-                                      >
-                                        <DropdownMenuRadioItem value="fast">
-                                          Fast Agent
-                                        </DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="agentic-planner">
-                                          Agentic Planner
-                                        </DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="agentic-reasoning">
-                                          Agentic Reasoning
-                                        </DropdownMenuRadioItem>
-                                      </DropdownMenuRadioGroup>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-
-                                  <CopyButton
-                                    strokeWidth={1.5}
-                                    content={message.response.content}
-                                    className="cursor-pointer size-[20px] text-black"
-                                  />
-
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <FileDown
-                                              strokeWidth={1.5}
-                                              className="cursor-pointer size-[18px]"
-                                            />
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>Download</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="">
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleReportDownload(
-                                            message.message_id,
-                                            "pdf"
-                                          )
-                                        }
-                                        className="flex gap-x-1.5 items-center"
-                                      >
-                                        <VscFilePdf />
-                                        PDF
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleReportDownload(
-                                            message.message_id,
-                                            "md"
-                                          )
-                                        }
-                                        className="flex gap-x-1.5 items-center"
-                                      >
-                                        <PiMarkdownLogo />
-                                        Markdown
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleReportDownload(
-                                            message.message_id,
-                                            "docx"
-                                          )
-                                        }
-                                        className="flex gap-x-1.5 items-center"
-                                      >
-                                        <BsFiletypeDocx />
-                                        DOCX
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Share2
-                                          onClick={handleChatSharingModal}
-                                          strokeWidth={1.5}
-                                          className="cursor-pointer size-[18px]"
-                                        />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Share</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-
-                                  {
-                                    message.feedback && message.feedback.liked === "yes" ? (
-                                      <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <HiThumbUp
-                                          strokeWidth={1.5}
-                                          className="size-[18px] cursor-pointer"
-                                        />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Like</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                    ) : message.feedback && message.feedback.liked === "no" ? (
-                                      <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <HiThumbDown
-                                          
-                                          className="size-[18px] cursor-pointer"
-                                        />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Dislike</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                    ) : (
-                                      <div className="flex items-center text-sm gap-x-4">
-                                        <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <ThumbsUp
-                                          strokeWidth={1.5}
-                                          className="size-[18px] cursor-pointer"
-                                          onClick={() =>
-                                            handleFeedbackResponse(
-                                              message.message_id,
-                                              message.response?.response_id || "",
-                                              true
-                                            )
-                                          }
-                                        />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Like</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <ThumbsDown
-                                          strokeWidth={1.5}
-                                          className="size-[18px] cursor-pointer"
-                                          onClick={() =>
-                                            handleFeedbackResponse(
-                                              message.message_id,
-                                              message.response?.response_id || "",
-                                              false
-                                            )
-                                          }
-                                        />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Dislike</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                            {
+                              message.response && !(isProcessing) && (
+                                <div className="flex items-center sm:justify-between justify-center flex-wrap gap-y-6 gap-x-2 my-6">
+                                  <div>
+                                    {message.sources &&
+                                      message.sources.length > 0 && (
+                                        <div className="">
+                                          <Sources
+                                            data={message.sources}
+                                            onHandleCitationData={() =>
+                                              handleOpen(index)
+                                            }
+                                          />
                                         </div>
-                                    )
-                                  }
+                                      )}
+                                  </div>
 
-                                  
+                                  <div className="flex items-center text-sm gap-x-4">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger className="focus:border-none">
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Repeat
+                                                strokeWidth={1.5}
+                                                className="cursor-pointer size-[20px]"
+                                              />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Retry</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent className="ml-5">
+                                        <DropdownMenuLabel>
+                                          Retry with
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuRadioGroup
+                                          value={currentSearchMode}
+                                          onValueChange={(value: string) =>
+                                            handleRewriteAnalysis(
+                                              value as SearchMode,
+                                              message.message_id,
+                                              message.query
+                                            )
+                                          }
+                                        >
+                                          <DropdownMenuRadioItem value="fast">
+                                            Fast Agent
+                                          </DropdownMenuRadioItem>
+                                          <DropdownMenuRadioItem value="agentic-planner">
+                                            Agentic Planner
+                                          </DropdownMenuRadioItem>
+                                          <DropdownMenuRadioItem value="agentic-reasoning">
+                                            Agentic Reasoning
+                                          </DropdownMenuRadioItem>
+                                        </DropdownMenuRadioGroup>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
 
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger>
-                                      <RxDotsHorizontal className="text-base" />{" "}
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleOpenFeedbackModal(
-                                            message.message_id,
-                                            message.response?.response_id || ""
-                                          )
-                                        }
-                                      >
-                                        <IoFlagOutline />
-                                        Report
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                    <CopyButton
+                                      strokeWidth={1.5}
+                                      content={message.response.content}
+                                      className="cursor-pointer size-[20px] text-black"
+                                    />
+
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger>
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <FileDown
+                                                strokeWidth={1.5}
+                                                className="cursor-pointer size-[20px]"
+                                              />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Download</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent className="">
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleReportDownload(
+                                              message.message_id,
+                                              "pdf"
+                                            )
+                                          }
+                                          className="flex gap-x-1.5 items-center"
+                                        >
+                                          <VscFilePdf />
+                                          PDF
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleReportDownload(
+                                              message.message_id,
+                                              "md"
+                                            )
+                                          }
+                                          className="flex gap-x-1.5 items-center"
+                                        >
+                                          <PiMarkdownLogo />
+                                          Markdown
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleReportDownload(
+                                              message.message_id,
+                                              "docx"
+                                            )
+                                          }
+                                          className="flex gap-x-1.5 items-center"
+                                        >
+                                          <BsFiletypeDocx />
+                                          DOCX
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Share2
+                                            onClick={handleChatSharingModal}
+                                            strokeWidth={1.5}
+                                            className="cursor-pointer size-[20px]"
+                                          />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Share</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+
+                                    {
+                                      message.feedback && message.feedback.liked === "yes" ? (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <HiThumbUp
+                                                strokeWidth={1.5}
+                                                className="size-[20px] cursor-pointer"
+                                              />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Liked</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      ) : message.feedback && message.feedback.liked === "no" ? (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <HiThumbDown
+
+                                                className="size-[20px] cursor-pointer"
+                                              />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Disliked</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      ) : (
+                                        <div className="flex items-center text-sm gap-x-4">
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <ThumbsUp
+                                                  strokeWidth={1.5}
+                                                  className="size-[20px] cursor-pointer"
+                                                  onClick={() =>
+                                                    handleFeedbackResponse(
+                                                      message.message_id,
+                                                      message.response?.response_id || "",
+                                                      true
+                                                    )
+                                                  }
+                                                />
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>Like</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <ThumbsDown
+                                                  strokeWidth={1.5}
+                                                  className="size-[20px] cursor-pointer"
+                                                  onClick={() =>
+                                                    handleFeedbackResponse(
+                                                      message.message_id,
+                                                      message.response?.response_id || "",
+                                                      false
+                                                    )
+                                                  }
+                                                />
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>Dislike</p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        </div>
+                                      )
+                                    }
+
+
+
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger>
+                                        <RxDotsHorizontal className="text-base" size={20}/>{" "}
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent>
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            handleOpenFeedbackModal(
+                                              message.message_id,
+                                              message.response?.response_id || ""
+                                            )
+                                          }
+                                        >
+                                          <IoFlagOutline size={20} />
+                                          Report
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
                                 </div>
-                              </div>
-                            )
-                          }
-                        </div>
-                      )}
+                              )
+                            }
 
+
+                            {
+                              (message.message_id === messageId && showElaborateSummarize && !isProcessing) && (
+                                <div className="flex flex-col items-center justify-center gap-4 my-6">
+
+                                  <p className="sm:text-base text-sm text-[#181818]">Would you like to explore this further or get a quick summary?</p>
+                                  <div className="flex items-center gap-x-4">
+
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger className="inline-flex sm:px-4 px-3 sm:py-2 py-1 sm:text-base text-sm items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none gap-x-2 bg-white border border-primary-600 text-primary-600 hover:bg-primary-50">
+
+                                        Elaborate
+                                        <ChevronDown className="text-sm text-primary-main" />
+
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent className="ml-5">
+
+                                        <DropdownMenuRadioGroup
+                                          value={elaborateWithExample}
+                                          onValueChange={(value) => handleElaborateResponse(value)}
+
+
+                                        >
+                                          <DropdownMenuRadioItem value="with">
+                                            With Example
+                                          </DropdownMenuRadioItem>
+                                          <DropdownMenuRadioItem value="without">
+                                            Without Example
+                                          </DropdownMenuRadioItem>
+
+                                        </DropdownMenuRadioGroup>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+
+
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger className="inline-flex sm:px-4 px-3 sm:py-2 py-1 sm:text-base text-sm items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none gap-x-2 bg-white border border-primary-600 text-primary-600 hover:bg-primary-50">
+                                        Summarize
+
+                                        <ChevronDown className="text-sm text-primary-main" />
+
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent className="ml-5">
+
+                                        <DropdownMenuRadioGroup
+                                          value={summarizeWithExample}
+                                          onValueChange={(value) => handleSummarizeResponse(value)}
+                                        >
+                                          <DropdownMenuRadioItem value="with">
+                                            With Example
+                                          </DropdownMenuRadioItem>
+                                          <DropdownMenuRadioItem value="without">
+                                            Without Example
+                                          </DropdownMenuRadioItem>
+
+                                        </DropdownMenuRadioGroup>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+
+
+                                  </div>
+                                </div>
+                              )
+                            }
+                          </div>
+
+
+                        </>
+                      )}
                       {message.error && (
                         <div className="pt-6 py-4 ">
                           <div className="">
@@ -1885,7 +2014,7 @@ useEffect(() => {
                                 }
                                 className="py-2.5 px-[1.25rem] text-primary-main border border-primary-main rounded-lg flex items-center justify-center gap-x-2 text-sm font-medium leading-normal tracking-normal"
                               >
-                                <BsArrowRepeat className="size-4 -rotate-45" />
+                                <BsArrowRepeat className="size-5 -rotate-45" />
                                 Regenerate Response
                               </button>
                             </div>
@@ -2010,9 +2139,9 @@ useEffect(() => {
                   </div>
                 );
               })}
-              
+
           </div>
-          
+
 
           <div className="w-full 2xl:max-w-full mx-auto xl:max-w-3xl lg:max-w-3xl grid grid-cols-1 2xl:grid-cols-10 mt-auto">
             <div className="2xl:col-span-6 lg:pr-5">
@@ -2061,7 +2190,7 @@ useEffect(() => {
                           className="rounded-full p-0.5"
                           aria-label="Remove file"
                         >
-                          <X className="size-3" />
+                          <X className="size-5" />
                         </button>
                       </div>
                     ))}
@@ -2097,7 +2226,7 @@ useEffect(() => {
                           <button
                             onClick={() => setDeepResearch(!deepResearch)}
                             className={cn(
-                              "flex items-center justify-center gap-2 rounded-[0.5rem] bg-primary-light sm:px-3 sm:py-1.5 p-2 text-sm font-normal text-primary-300 transition-colors",
+                              "flex items-center justify-center gap-2 rounded-[0.5rem] bg-primary-light sm:px-3 sm:py-2 p-2 text-sm font-normal text-primary-300 transition-colors",
                               deepResearch && "bg-primary-main text-white"
                             )}
                             aria-checked={deepResearch}
@@ -2147,7 +2276,7 @@ useEffect(() => {
                       hidden
                     />
                     <button onClick={openDocUpload}>
-                      <Paperclip size={16} />
+                      <Paperclip size={20} />
                     </button>
 
                     {
@@ -2163,9 +2292,9 @@ useEffect(() => {
                         <button
                           disabled={!query.trim() || isProcessing}
                           onClick={() => sendMessage()}
-                          className="flex items-center justify-center size-10 rounded-full disabled:bg-primary-200 bg-primary-main"
+                          className="flex items-center justify-center size-8 rounded-full disabled:bg-primary-200 bg-primary-main"
                         >
-                          <MoveUp className="text-white size-6" />
+                          <MoveUp className="text-white size-5" />
                         </button>
                       )
                     }

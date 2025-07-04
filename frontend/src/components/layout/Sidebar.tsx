@@ -288,7 +288,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               href="/"
               className="flex items-center justify-center w-full rounded-md p-2 text-white bg-primary-main text-base font-medium transition-colors"
             >
-              <Plus className="mr-2 text-white size-5" />
+              <Plus className="mr-2 text-white size-4" />
               <span>New Research</span>
             </Link>
           </div>
@@ -302,7 +302,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 width={20}
               />
 
-              <span className="text-sm font-meium">Thread History</span>
+              <span className="text-sm lg:text-base">Thread History</span>
             </div>
             <button onClick={() => setThreadSearchOpen(true)} className="cursor-pointer">
               <HiOutlineSearch size={20} />
@@ -314,7 +314,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             <div className="pl-6 pr-4 space-y-4 w-full">
               {sessionHistoryData.map((group, gi) => (
                 <div key={gi}>
-                  <div className="pb-1.5 text-sm font-medium text-black">
+                  <div className="pb-1.5 text-sm font-medium text-black lg:text-xs">
                     {group.timeline}
                   </div>
                   {group.data.map((item) => (
@@ -370,13 +370,13 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                   <div className="w-8 h-8 rounded-md bg-[#3B1C2B] flex items-center justify-center text-white font-medium mr-2">
                     {userName?.charAt(0).toUpperCase() || ""}
                   </div>
-                  <div className="text-sm max-w-[150px] truncate text-neutral-300 font-medium">
+                  <div className="text-sm max-w-[150px] truncate text-[#3A3A3A] font-medium lg:text-base">
                     {userName || ""}
                   </div>
-                  <ChevronUp size={16} className="ml-1 text-neutral-300" />
+                  <ChevronUp size={16} className="ml-1 text-neutral-300 size-5 text-[#3A3A3A]" />
                 </div>
-                <button className="p-1 hover:bg-gray-200 rounded transition-colors">
-                  <Settings strokeWidth={1.5} className="text-neutral-300" />
+                <button className="p-1 hover:bg-gray-200 rounded transition-colors text-base">
+                  <Settings strokeWidth={1.5} className="text-neutral-300 size-5" />
                 </button>
               </div>
             }

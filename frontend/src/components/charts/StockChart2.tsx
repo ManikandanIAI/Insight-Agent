@@ -32,19 +32,11 @@ interface StockChartProps {
     period?: string;
 }
 
-const CustomTooltip = ({ active, payload, label, symbol, setShowLastPredicted, showLastPredicted }: any) => {
-
-    useEffect(() => {
-        if (active && payload?.[0]?.payload?.isLastPredicted) {
-            setShowLastPredicted(true);
-        } else {
-            setShowLastPredicted(false);
-        }
-    }, [active, payload, setShowLastPredicted]);
+const CustomTooltip = ({ active, payload, label, symbol }: any) => {
 
     if (active && payload && payload.length) {
         const data = payload[0].payload;
-        if (data.type === "predicted" && data.isLastPredicted) {
+        if (data.type === "predicted") {
             return null;
         }
         return (
@@ -77,8 +69,8 @@ const StockChart2: React.FC<StockChartProps> = ({
     period,
 }) => {
     const chartColor = isPositive ? "#51CE72" : "#ef4444";
-    const [showLastPredicted, setShowLastPredicted] = useState(false);
     const [step, setStep] = useState(0); // State to hold step size for Y-axis domain
+    const [activeIndex, setActiveIndex] = useState<number | null>(null);
     const isMobile = useIsMobile();
 
 
@@ -107,11 +99,6 @@ const StockChart2: React.FC<StockChartProps> = ({
         const isLastHistorical =
             d.type === "historical" &&
             index === arr.findLastIndex((item) => item.type === "historical");
-
-
-        const lastPredictedIndex = chartData.findLastIndex(item => item.type === "predicted");
-
-        const isLastPredicted = index === lastPredictedIndex;
 
         const isPredictedOrEdge = d.type === "predicted" || isLastHistorical;
         const predicted = isPredictedOrEdge ? Number(d.close) : null;
@@ -146,10 +133,8 @@ const StockChart2: React.FC<StockChartProps> = ({
             predictedLow: low,
             band, // Array for AreaChart
             bandLow,
-            isLastPredicted
         };
     });
-
 
 
 
@@ -180,16 +165,16 @@ const StockChart2: React.FC<StockChartProps> = ({
 
     // Calculate Y-axis domain
     const yAxisTicks = useMemo(() => {
-    const isSmallRange = maxY < 10;
-    const stepSize = (maxY - minY) / 4;
+        const isSmallRange = maxY < 10;
+        const stepSize = (maxY - minY) / 4;
 
-    // Save stepSize for domain expansion
-    setStep(stepSize); // optional if you need it in domain
+        setStep(stepSize); // optional if needed it in domain
 
-    return Array.from({ length: 7 }, (_, i) =>
-        parseFloat((minY - stepSize + i * stepSize).toFixed(isSmallRange ? 3 : 2))
-    );
-}, [minY, maxY]);
+        return Array.from({ length: 6 }, (_, i) =>
+            parseFloat((minY + i * stepSize).toFixed(isSmallRange ? 3 : 2))
+        );
+    }, [minY, maxY]);
+
 
 
     // If loading, show skeleton
@@ -228,31 +213,35 @@ const StockChart2: React.FC<StockChartProps> = ({
         );
     };
 
-    const LastPredictedCards = ({ data, xAxisMap, yAxisMap }: any) => {
-        const lastIndex = data.findLastIndex((d: any) => d.type === "predicted");
-        if (lastIndex === -1) return null;
-        const point = data[lastIndex];
+    const MultiCardTooltip = ({ data, xAxisMap, yAxisMap, activeIndex }: any) => {
 
+        if (activeIndex == null || !data[activeIndex] || data[activeIndex]?.type === "historical") return null;
+
+        const point = data[activeIndex];
         const xScale = (Object.values(xAxisMap)[0] as { scale: (value: any) => number })?.scale;
         const yScale = (Object.values(yAxisMap)[0] as { scale: (value: any) => number })?.scale;
         if (!xScale || !yScale) return null;
 
         const cx = xScale(point.date);
+        const cyClose = yScale(point.close);
+        const cyHigh = yScale(point.high);
+        const cyLow = yScale(point.low);
 
         return (
             <>
-                <foreignObject x={cx - 200} y={yScale(point.close) - 30} width={200} height={40}>
+                <foreignObject x={cx - 200} y={cyClose - 20} width={200} height={40}>
                     <CustomTooltipCard name="Forecasted Price" value={point.close} textColor="text-[#8B2B52]" />
                 </foreignObject>
-                <foreignObject x={cx - 200} y={yScale(point.high)} width={200} height={40}>
+                <foreignObject x={cx - 200} y={cyHigh - 20} width={200} height={40}>
                     <CustomTooltipCard name="Upper Limit" value={point.high} textColor="text-green-500" />
                 </foreignObject>
-                <foreignObject x={cx - 200} y={yScale(point.low) - 30} width={200} height={40}>
+                <foreignObject x={cx - 200} y={cyLow - 20} width={200} height={40}>
                     <CustomTooltipCard name="Lower Limit" value={point.low} textColor="text-red-500" />
                 </foreignObject>
             </>
         );
     };
+
 
     return (
         <div className="w-96 h-60 min-h-60 relative" style={{ minWidth: "100%" }}>
@@ -260,6 +249,14 @@ const StockChart2: React.FC<StockChartProps> = ({
                 <ComposedChart
                     data={transformedData}
                     margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                    onMouseMove={(state) => {
+                        if (state?.activeTooltipIndex != null) {
+                            setActiveIndex(state.activeTooltipIndex);
+                        } else {
+                            setActiveIndex(null);
+                        }
+                    }}
+                    onMouseLeave={() => setActiveIndex(null)}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
 
@@ -280,7 +277,7 @@ const StockChart2: React.FC<StockChartProps> = ({
 
                     <YAxis
                         yAxisId="left"
-                        domain={[minY-step, maxY-step]}
+                        domain={[minY, maxY + step]}
                         axisLine={false}
                         tickLine={false}
                         ticks={yAxisTicks}
@@ -305,7 +302,7 @@ const StockChart2: React.FC<StockChartProps> = ({
                         stroke="none"
                         fillOpacity={0.2}
                     />
-                    <Tooltip content={<CustomTooltip symbol={symbol} setShowLastPredicted={setShowLastPredicted} showLastPredicted={showLastPredicted} />} />
+                    <Tooltip content={<CustomTooltip symbol={symbol} />} />
 
                     <Customized
                         component={({ xAxisMap, yAxisMap, data }: any) => {
@@ -371,10 +368,17 @@ const StockChart2: React.FC<StockChartProps> = ({
                         name="Predicted Line"
                     />
 
-                    {showLastPredicted && (
-                        //@ts-ignore
-                        <Customized component={(props) => <LastPredictedCards {...props} />} />
-                    )}
+                    {(transformedData.length !== ((activeIndex || 0) - 1)) && <Customized
+                        component={({ data, xAxisMap, yAxisMap }: any) => (
+                            <MultiCardTooltip
+                                data={data}
+                                xAxisMap={xAxisMap}
+                                yAxisMap={yAxisMap}
+                                activeIndex={activeIndex}
+                            />
+                        )}
+                    />
+                    }
                 </ComposedChart>
             </ResponsiveContainer>
         </div>

@@ -26,7 +26,6 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
 
 
   const handleNavigationClick = (index: number, route: string) => {
-    router.push(route); // Navigate to the clicked route
     const updatedItems = navigationItems.map((item, i) => ({
       ...item,
       current: i === index ? true : false, // Set current to true for clicked item
@@ -85,7 +84,8 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
           {/* Navigation */}
           <nav className="mt-10 space-y-1 flex-1">
             {navigationItems.map((item, index) => (
-              <button
+              <Link
+                href={item.route}
                 onClick={() => handleNavigationClick(index, item.route)}
                 key={item.name}
                 className={clsx(
@@ -110,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                 />
 
                 {item.name}
-              </button>
+              </Link>
             ))}
           </nav>
         </div>

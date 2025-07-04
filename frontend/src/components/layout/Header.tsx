@@ -3,7 +3,6 @@ import React from 'react';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import Image from 'next/image';
-import SpeedComponent from './components/ServerSpeed';
 
 
 interface HeaderProps {
@@ -25,9 +24,6 @@ const Header: React.FC<HeaderProps> = ({ heading }) => {
       </div>
       <div className="flex items-center gap-x-6">
         <div className="flex items-center gap-x-3.5">
-          <div className="">
-            <SpeedComponent />
-          </div>
           <DropdownMenu>
             <DropdownMenuTrigger className='focus:border-none'>
               <Ellipsis className="size-5" />
@@ -56,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ heading }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Share2 strokeWidth={1.5} className="cursor-pointer size-[18px]" />
+                <Share2 strokeWidth={1.5} className="cursor-pointer size-[20px]" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Share</p>
@@ -67,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ heading }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <FileDown strokeWidth={1.5} className="cursor-pointer size-[18px]" />
+                <FileDown strokeWidth={1.5} className="cursor-pointer size-[20px]" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Download</p>

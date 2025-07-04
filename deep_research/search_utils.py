@@ -56,9 +56,24 @@ def tavily_search(query: str):
 
 async def process_query_initial_stream(user_query: str):
     try:
-        yield {"type": "research", "agent_name": "Deep Research Agent", "title": f"Performing inital search\n\n---\nSearching\n`{user_query}`", "id": get_unique_response_id()}
+        search_query = user_query
+
+        if len(user_query) > 150:
+            prompt = f""" Make the user query into a small/compact searchable google query to perform search in a better manner, must focus on specificity, clarity, and depth. Make the query limit to less than 15 words. User query: {user_query}.
+            """
+            
+            response = await acompletion(
+                model="gpt-4.1-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+            )
+            
+            search_query = response.choices[0].message.content.strip()
+            
+        yield {"type": "research", "agent_name": "Deep Research Agent", "title": f"Performing inital search\n\n---\nSearching\n`{search_query}`"}
         
-        search_results = await asyncio.to_thread(tavily_search, user_query)
+        # print("\n--tavily--\n", search_query, "\n---\n")
+        search_results = await asyncio.to_thread(tavily_search, search_query)
         
         formatted_urls = ' '.join(f"[{get_second_level_domain(item['url'])}]({item['url']})" for item in search_results)
 

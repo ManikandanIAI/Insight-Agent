@@ -11,11 +11,8 @@ import remarkMath from 'remark-math';
 import { visit } from 'unist-util-visit';
 import * as XLSX from 'xlsx';
 import { Download } from 'lucide-react';
-// import Image from 'next/image';
+
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "";
-
-
-// import { ChainlitContext, type IMessageElement } from '@chainlit/react-client';
 
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card } from '@/components/ui/card';
@@ -29,10 +26,8 @@ import {
   TableRow
 } from '@/components/ui/table';
 
-
 import CodeSnippet from './CodeSnippet';
 import BlinkingCursor from "./BlinkingCursor";
-// import { ElementRef } from './Elements/ElementRef';
 import { MarkdownAlert, alertComponents } from './MarkdownAlert';
 import Image from 'next/image';
 import CustomTable from './CustomTable';
@@ -41,12 +36,28 @@ import { toast } from 'sonner';
 interface Props {
   allowHtml?: boolean;
   latex?: boolean;
-  //   refElements?: IMessageElement[];
   children: string;
-  // currentData: string;
   className?: string;
 }
 
+// Plugin to clean up markdown formatting issues
+const markdownCleanupPlugin = () => {
+  return (tree: any) => {
+    visit(tree, 'text', (node: any) => {
+      if (node.value) {
+        // Remove unwanted line breaks after bold/italic markers
+        node.value = node.value
+          .replace(/\*\*\s*\n\s*/g, '**') // Remove line breaks after opening **
+          .replace(/\s*\n\s*\*\*/g, '**') // Remove line breaks before closing **
+          .replace(/\*\s*\n\s*/g, '*')    // Remove line breaks after opening *
+          .replace(/\s*\n\s*\*/g, '*')    // Remove line breaks before closing *
+          .replace(/\n\s*\n/g, '\n\n')    // Normalize multiple line breaks
+          .replace(/\s+/g, ' ')          // Normalize multiple spaces
+          .trim();
+      }
+    });
+  };
+};
 
 const cursorPlugin = () => {
   return (tree: any) => {
@@ -97,13 +108,28 @@ const cursorPlugin = () => {
 const Markdown = ({
   allowHtml,
   latex,
-  //   refElements,
   className,
-  // currentData,
   children
 }: Props) => {
-  //   const apiClient = useContext(ChainlitContext);
+  // Clean up the markdown content before processing
+  const cleanedContent = useMemo(() => {
+    if (!children) return '';
 
+    return children
+      // Fix bold markers with line breaks
+      // .replace(/\*\*\s*\n\s*/g, '** ')
+      // .replace(/\s*\n\s*\*\*/g, ' **')
+      // Fix italic markers with line breaks
+      // .replace(/\*\s*\n\s*/g, '*')
+      // .replace(/\s*\n\s*\*/g, '*')
+      // Fix table formatting
+      // .replace(/\|\s*\n\s*/g, '| ')
+      // .replace(/\s*\n\s*\|/g, ' |')
+      // Normalize line breaks
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove trailing spaces
+      .replace(/[ \t]+$/gm, '');
+  }, [children]);
 
   const rehypePlugins = useMemo(() => {
     let rehypePlugins: PluggableList = [];
@@ -118,6 +144,7 @@ const Markdown = ({
 
   const remarkPlugins = useMemo(() => {
     let remarkPlugins: PluggableList = [
+      // markdownCleanupPlugin, // Add cleanup plugin first
       cursorPlugin,
       remarkGfm as any,
       remarkDirective as any,
@@ -132,13 +159,11 @@ const Markdown = ({
 
   return (
     <div className={cn('prose lg:prose-xl', className)}>
-
-
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
         components={{
-          ...alertComponents, // add alert components
+          ...alertComponents,
           code(props) {
             return (
               <code
@@ -154,28 +179,26 @@ const Markdown = ({
             return (
               <a {...props} className="w-fit inline-block group" target="_blank" rel="noopener noreferrer" title={props.href}>
                 <div className="bg-primary-light text-[#A7A7A7] hover:text-gray-500 rounded-[60px] text-[10px] px-2 py-0.5 opacity-90 hover:opacity-100 flex items-center w-fit transition-all duration-200">
-
                   <span className="text-xs font-medium">{children}</span>
                 </div>
               </a>
             );
           },
           iframe: ({ src, title, width, height, ...props }: any) => {
-            //   const handleDownload = () => {
-            //     // Create anchor element to trigger download
-            //     const a = document.createElement('a');
-            //     a.href = src.startsWith('public') ? `${BASE_URL}/${src}` : src;
-            //     a.download = title || "embedded-content";
-            //     document.body.appendChild(a);
-            //     a.click();
-            //     document.body.removeChild(a);
-            //   };
+            // Calculate aspect ratio from backend dimensions if provided
+            const backendWidth = typeof width === 'string' ? parseInt(width) : width;
+            const backendHeight = typeof height === 'string' ? parseInt(height) : height;
+
+            // Use backend aspect ratio if both dimensions are provided, otherwise default to 16:9
+            const aspectRatio = (backendWidth && backendHeight)
+              ? backendWidth / backendHeight
+              : 16 / 9;
 
             return (
               <div className="my-4 w-full relative">
                 <AspectRatio
-                  ratio={16 / 9}
-                  className="bg-muted rounded-md overflow-hidden"
+                  ratio={aspectRatio}
+                  className="bg-muted rounded-md h-auto overflow-hidden"
                 >
                   <iframe
                     src={
@@ -184,31 +207,24 @@ const Markdown = ({
                         : src
                     }
                     title={title || "Embedded content"}
-                    width={width || "100%"}
-                    height={height || "100%"}
+                    width="100%"
+                    height="100%"
                     allowFullScreen
                     className="h-full w-full border-none"
+                    style={{
+                      minHeight: '250px', // Minimum height for mobile readability
+                      maxHeight: '90vh',  // Maximum height relative to viewport
+                      objectFit: 'contain' // Ensures content scales properly
+                    }}
                     {...omit(props, ['node'])}
                   />
                 </AspectRatio>
-                {/* <button 
-            onClick={handleDownload}
-            className="absolute -top-2 -right-4 bg-slate-800 text-white p-1 rounded-md opacity-80 hover:opacity-100 flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span className="ml-1 text-xs">Download</span>
-          </button> */}
               </div>
             );
           },
           img: (image: any) => {
             const handleDownload = async () => {
               try {
-                // Construct a valid absolute URL
                 const imgSrc = image.src.startsWith('public')
                   ? new URL(image.src, BASE_URL).href
                   : image.src;
@@ -278,28 +294,22 @@ const Markdown = ({
             return <Separator />;
           },
           ul(props): any {
-
             return (
               <ul
                 {...omit(props, ['node'])}
                 className="my-3 ml-3 list-disc pl-2"
               >
-
                 <bdi className='text-sm text-[#7E7E7E] font-medium leading-normal [&>li]:mt-2'>{props.children}</bdi>
-
               </ul>
             );
           },
-
           ol(props) {
             return (
               <ol
                 {...omit(props, ['node'])}
                 className="my-3 ml-3 list-disc pl-2"
               >
-
                 <bdi className='text-sm text-[#7E7E7E] font-medium leading-normal [&>li]:mt-2'>{props.children}</bdi>
-
               </ol>
             );
           },
@@ -360,13 +370,13 @@ const Markdown = ({
             return <TableCell className='border-l border-r px-2.5 border-[#D2D2D2] first:border-l-0 last:border-r-0' {...(props as any)}>{children}</TableCell>;
           },
           tbody({ children, ...props }) {
-            return <TableBody  {...(props as any)}>{children}</TableBody>;
+            return <TableBody {...(props as any)}>{children}</TableBody>;
           },
           // @ts-expect-error custom plugin
           blinkingCursor: () => <BlinkingCursor whitespace />
         }}
       >
-        {children}
+        {cleanedContent}
       </ReactMarkdown>
     </div>
   );

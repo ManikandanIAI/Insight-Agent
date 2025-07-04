@@ -17,6 +17,10 @@ import { toast } from "sonner";
 import ApiServices from "@/services/ApiServices";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import MultiSelectDropdown from "@/components/ui/multiSelect";
+
+
+const toolsData:string[] = ["ChatGPT", "Claude", "Perplexity", "Others"];
 
 const OnBoarding = () => {
   const router = useRouter();
@@ -148,29 +152,11 @@ const OnBoarding = () => {
           </div>
 
           {/* Tools Used */}
-          <div className="sm:space-y-3 space-y-2">
+          <div className="sm:space-y-3 space-y-2 ">
             <Label className="sm:text-sm text-xs font-mormal text-[#313131]">
               Which tools do you currently use?
             </Label>
-            <Select
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, tools_used: value }))
-              }
-            >
-              <SelectTrigger className="w-full sm:px-5 px-4 sm:py-6 py-5 sm:rounded-xl rounded-lg sm:text-base text-sm bg-[#FCFBFA] border border-primary-100 text-[#BAB9B9] font-medium focus:bg-[#F3E6ED] active:bg-[#F3E6ED] active:border-transparent focus:ring-[#F3E6ED] focus:border-transparent focus:text-black">
-                <SelectValue placeholder="Choose Option" />
-              </SelectTrigger>
-              <SelectContent className="p-0 rounded-[12px] border-none bg-white shadow-[0px_9px_30px_0px_rgba(0,0,0,0.06)]">
-                <SelectGroup className="text-sm text-[#676767] font-normal">
-                  <SelectLabel className="px-4">Choose Option</SelectLabel>
-                  <Separator className="-mx-6 w-[120%] my-1" />
-                  <SelectItem className="px-4" value="ChatGPT">ChatGPT</SelectItem>
-                  <SelectItem className="px-4" value="Claude">Claude</SelectItem>
-                  <SelectItem className="px-4" value="Perplexity">Perplexity</SelectItem>
-                  <SelectItem className="px-4" value="Others">Others</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <MultiSelectDropdown selected={formData.tools_used} onValueChange={(value:any) => setFormData((prev) => ({ ...prev, tools_used: value }))} data={toolsData} />
           </div>
 
           {/* Insight Goal */}

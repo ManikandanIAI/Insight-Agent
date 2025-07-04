@@ -17,6 +17,7 @@ import ApiServices from "@/services/ApiServices";
 import { IChartData } from "@/types/chart-data";
 import { set } from "lodash";
 import StockChart2 from "./StockChart2";
+import { ArrowRight, MoveRight } from "lucide-react";
 export interface RealTimeData {
   symbol: string;
   currency: string;
@@ -261,8 +262,8 @@ const FinanceChart: React.FC<FinanceChartProps> = ({
                     <Tabs value={activeTab.find((tab) => tab.symbol === realtimeData.symbol)?.activeTab} onValueChange={(value) => handleActiveTab(value, realtimeData.symbol, realtimeData.exchange)} className="w-full mb-2">
 
                       <TabsList className="bg-primary-light rounded-lg px-1.5 py-2">
-                        <TabsTrigger className="data-[state=active]:text-primary-main text-sm font-medium px-2 flex items-center gap-x-1" value={`historical`}><HistoricalIcon isActive={activeTab.find((tab) => tab.symbol === realtimeData.symbol)?.activeTab === "historical"} /> Live/historical Data</TabsTrigger>
-                        <TabsTrigger className="data-[state=active]:text-primary-main text-sm font-medium px-2 flex items-center gap-x-1" value={`prediction`}><PredictiveIcon isActive={activeTab.find((tab) => tab.symbol === realtimeData.symbol)?.activeTab === "prediction"} /> Price Forecast</TabsTrigger>
+                        <TabsTrigger className="data-[state=active]:text-primary-main text-sm font-medium px-2 flex items-center gap-x-1" value={`historical`}><HistoricalIcon isActive={activeTab.find((tab) => tab.symbol === realtimeData.symbol)?.activeTab === "historical"} width={20} height={20}/> Live/historical Data</TabsTrigger>
+                        <TabsTrigger className="data-[state=active]:text-primary-main text-sm font-medium px-2 flex items-center gap-x-1" value={`prediction`}><PredictiveIcon isActive={activeTab.find((tab) => tab.symbol === realtimeData.symbol)?.activeTab === "prediction"} width={20} height={20}/> Price Forecast</TabsTrigger>
                       </TabsList>
                       <TabsContent value="historical">
                         <TimePeriodTabs
@@ -313,9 +314,10 @@ const FinanceChart: React.FC<FinanceChartProps> = ({
                       <a
                         target="_blank"
                         href={data[0].historical.source}
-                        className="text-primary-main text-xs"
+                        className="text-primary-main text-xs flex items-center justify-center gap-x-1 "
                       >
-                        More about {realtimeData.symbol} →
+                        More about {realtimeData.symbol} 
+                        <ArrowRight size={20} />
                       </a>
                     </div>
                   </motion.div>

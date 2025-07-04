@@ -5,6 +5,9 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from .utils import get_context_messages_for_response
 from llm.model import get_llm, get_llm_alt
 from llm.config import ReportGenerationConfig
+from tools.graph_gen_tool import graph_tool_list
+from langgraph.prebuilt import create_react_agent
+
 
 rgc = ReportGenerationConfig()
 
@@ -14,9 +17,13 @@ class ReportGenerationAgent(BaseAgent):
         super().__init__()
         self.model = get_llm(rgc.MODEL, rgc.TEMPERATURE, rgc.MAX_TOKENS)
         self.model_alt = get_llm_alt(rgc.ALT_MODEL, rgc.ALT_TEMPERATURE, rgc.ALT_MAX_TOKENS)
+        self.tools = graph_tool_list
         self.system_prompt = SYSTEM_PROMPT
 
     def format_input_prompt(self, state: Dict[str, Any]) -> str:
+        # print("--- From inside format_input_prompt of ReportGenerationAgent ---") #
+        # print(f"\n state inside report generation agent = {state}\n") #
+
         task = state['current_task']
 
         input_prompt = f"### Latest User Query: {state['user_query']}\n"
@@ -39,29 +46,76 @@ class ReportGenerationAgent(BaseAgent):
         if state.get('initial_info'):
             input_prompt += f"- You can also use this data retrieved from Internal Database as context:\n{state['initial_info']}"
 
+        # print(f"\n input_prompt of report generation agent= {input_prompt} \n") #
+
         return input_prompt
 
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         task = state['current_task'].copy()
+        # print("--- Start of ReportGenerationAgent ---") #
+        # print(f"\n state inside ReportGenerationAgent = {state}\n") #
 
         input_prompt = self.format_input_prompt(state)
         system_message = SystemMessage(content=self.system_prompt)
         human_message = HumanMessage(content=input_prompt)
 
+        input = {"messages": [human_message]}
+
         try:
-            response = self.model.invoke(input=[system_message, human_message])
+            # response = self.model.invoke(input=[system_message, human_message])
+            agent = create_react_agent(model=self.model, tools=self.tools, prompt=system_message)            
+            response = agent.invoke(input)
+            # print(f"response of report generation agent = {response}.") #
+
         except Exception as e:
             print(f"Falling back to alternate model: {str(e)}")
             try:
-                response = self.model_alt.invoke(
-                    input=[system_message, human_message])
+                agent = create_react_agent(
+                    model=self.model_alt, tools=self.tools, prompt=system_message)
+                response = agent.invoke(input)
             except Exception as e:
                 print(f"Error occurred in fallback model: {str(e)}")
                 raise e
 
-        final_response = response.content.strip()
+        # final_response = response.content.strip()
+        # Safely extract final response from the last message
+        messages = response.get("messages", [])
+        if messages and hasattr(messages[-1], "content"):
+            final_response = messages[-1].content.strip()
+        else:
+            final_response = ""  # Or handle error
+
+        # print(f"final_response of report generation agent = {final_response}.") #
+
+        # 1. Convert HumanMessage/SystemMessage to dicts if needed
+        def msg_to_dict(msg):
+            # If it's a dict, don't touch it—preserve all keys (esp. tool_call_id)
+            if isinstance(msg, dict):
+                return msg
+            # If it's a LangChain Message object, use .dict() if available, else .__dict__
+            if hasattr(msg, "dict"):
+                return msg.dict()
+            if hasattr(msg, "__dict__"):
+                return msg.__dict__
+            # fallback
+            return {"role": "unknown", "content": str(msg)}
+
+        
+        # 2. Gather all messages
+        all_messages = []
+        all_messages.append(msg_to_dict(human_message))
+        # Add agent messages (flatten if needed)
+        if isinstance(response, dict) and "messages" in response:
+            for m in response["messages"]:
+                all_messages.append(msg_to_dict(m))
+        else:
+            all_messages.append(msg_to_dict(response))
+
+        # print(f"all_messages = {all_messages}.")
+
+        # print("--- End of ReportGenerationAgent ---") #
 
         return {
-            "messages": [human_message, response],
+            "messages": all_messages,
             "final_response": final_response
         }

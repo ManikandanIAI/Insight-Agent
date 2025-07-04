@@ -64,8 +64,8 @@ const CopyButton = ({ content, className, strokeWidth }: Props) => {
         <TooltipContent>
           <p>
             {copied
-              ? ("copied")
-              : ('copy')}
+              ? ("Copied")
+              : ('Copy')}
           </p>
         </TooltipContent>
       </Tooltip>

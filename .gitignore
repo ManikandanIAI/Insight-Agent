@@ -1,0 +1,41 @@
+# Ignore Chainlit directories
+.chainlit/
+
+# Ignore specific files
+.files/
+
+# Ignore agent prompts cache
+**/__pycache__/
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+
+# Ignore environment files
+.env
+
+# Ignore logs files
+graph_logs/*
+
+# Ignore test files
+test/*
+
+# Ignore venv
+.venv/
+venv/
+# Ignore .vscode
+.vscode/
+
+# Ignore Chrome-webdriver
+chromedriver-linux64/
+
+# Ignore public folder
+public/*
+
+external_data/*
+
+stock_data/
+
+out/

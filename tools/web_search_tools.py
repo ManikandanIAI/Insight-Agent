@@ -328,10 +328,10 @@ Returns search results containing website url, title, content and score.
 
         return tool_output, file_data_to_write
     
-    def _run(self, query: List[str] = None, search_topic: str = 'finance', time_range: str = None, explanation: str = None) -> Dict:
+    def _run(self, query: List[str] = None, time_range: str = None, explanation: str = None) -> Dict:
         output = {'queries': query, 'results': [], 'methods': set(), 'errors': [], 'files_to_write': []}
 
-        search_tavily = TavilySearch(max_results=5, topic=search_topic, include_raw_content=True, time_range=time_range, include_domains=None)
+        search_tavily = TavilySearch(max_results=5, include_raw_content=True, time_range=time_range, include_domains=None)
         search_google = GoogleSerperAPIWrapper(serper_api_key=serper_api_key, k=6)
         search_duckduckgo = DuckDuckGoSearchResults(num_results=5, output_format="list")
 

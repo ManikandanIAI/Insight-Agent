@@ -240,11 +240,31 @@ QUALITY CRITERIA:
 - Structure should enable a logically flowing research report
 """
 
+SEARCH_QUERY_PROMPT_= """
+You are a research strategist. Your job is to take a topic and its subtopics along with the Research Query, Subject of Focus, Analysis Type, and the current date/time and generate detailed, information-rich search queries. These queries should be suitable for gathering in-depth insights or writing a deep research report, with emphasis on recent and up-to-date information.
+
+Instructions:
+- Focus on specificity, clarity, and depth.
+- Consider the current date/time provided in the input to generate time-relevant queries.
+- Include time-based parameters when appropriate (e.g., "past year", "2025 trends", "recent developments").
+- Prioritize searches that will return the most current information available.
+- Use natural phrasing that would work well in a search engine or research database.
+- Use advance search operators to get revelant info from the search engines.
+- Limit the queries to 4 for each topic, and make sure they cover enough aspects.
+- Return the queries as a list of strings (no numbers or formatting).
+
+Also consider the User Request to frame the search results accordingly.
+
+Only output the list of search queries. Do not include any explanation or extra text.
+"""
+
 SEARCH_QUERY_PROMPT = """
 You are a research strategist. Your job is to take a topic and its subtopics along with the Research Query, Subject of Focus, Analysis Type, and the current date/time and generate detailed, information-rich search queries. These queries should be suitable for gathering in-depth insights or writing a deep research report, with emphasis on recent and up-to-date information.
 
 Instructions:
 - Focus on specificity, clarity, and depth.
+- **Make sure the research quesries are small in length, try to limit upto 8 words.**
+- Don't use any **Boolean operation keywords** in the research queries and in the search queries.
 - Consider the current date/time provided in the input to generate time-relevant queries.
 - Include time-based parameters when appropriate (e.g., "past year", "2025 trends", "recent developments").
 - Prioritize searches that will return the most current information available.
@@ -631,6 +651,7 @@ Synthesize a precise, testable research question that:
 - Directly supports a strategic decision
 - Can be validated through evidence
 - Addresses the core uncertainty or opportunity
+- **Make sure the length of the query must be small, limit to 9 words**
 - Passes the "elevator test" for clarity
 
 Example format: "Should [Organization] [Action] to [Objective] given [Key Constraints/Context]?"

@@ -89,12 +89,6 @@ const ChatArea = () => {
 
 
 
-
-
-
-
-
-
   const sendMessage = async () => {
     const message = query.trim();
     const documents = uploadedFileData.map((file) => ({
@@ -230,7 +224,7 @@ const ChatArea = () => {
             <div
 
               className={cn(`text-center flex items-center justify-center`,)}>
-              <h1 className="text-primary-dark sm:text-[3.375rem] text-[1.25rem] font-medium leading-tight">
+              <h1 className="text-primary-dark sm:text-[52px] text-[1.25rem] font-medium leading-tight">
                 Ask me anything finance!
               </h1>
 
@@ -323,7 +317,7 @@ const ChatArea = () => {
                               aria-checked={deepResearch}
                               role="checkbox"
                             >
-                              <PiPlanetLight className="size-5 flex-shrink-0" />
+                              <PiPlanetLight className="size-5 flex-shrink-0 m-[2px]" />
 
                               <span className="sm:block hidden">Deep Research</span>
                             </button>
@@ -339,7 +333,7 @@ const ChatArea = () => {
 
                       <div className="">
                         <Select value={currentSearchMode} onValueChange={handleAgentChange}>
-                          <SelectTrigger className="w-[120px] border border-primary-100 focus:border-primary-main">
+                          <SelectTrigger className="min-w-28 max-w-28 sm:max-w-36 border border-primary-100 focus:border-primary-main">
                             <SelectValue placeholder="Select Agent" />
                           </SelectTrigger>
                           <SelectContent>
@@ -376,14 +370,14 @@ const ChatArea = () => {
                         handleDocUploadChange(e.target.files);
                         e.target.value = "";
                       }} type="file" ref={docRef} hidden />
-                      <button onClick={openDocUpload}><Paperclip size={16} /></button>
+                      <button onClick={openDocUpload}><Paperclip size={20} /></button>
 
                       <button
                         disabled={!query || isProcessing}
                         onClick={sendMessage}
-                        className="flex items-center justify-center size-10 rounded-full disabled:bg-primary-200 bg-primary-main"
+                        className="flex items-center justify-center size-9 rounded-full disabled:bg-primary-200 bg-primary-main"
                       >
-                        <MoveUp color="white" />
+                        <MoveUp color="white" size={20}/>
                       </button>
 
                     </div>
@@ -427,7 +421,7 @@ const ChatArea = () => {
               <div
                 ref={textContainerRef}
                 style={{ maxHeight: `${MAX_HEIGHT}px` }}
-                className="group flex sm:p-4 p-2 flex-col h-auto min-h-0 overflow-y-auto rounded-[1rem] border-2 focus-within:border-transparent focus-within:bg-[#f3f1ee66] transition"
+                className="group flex p-4 flex-col h-auto min-h-0 overflow-y-auto rounded-[1rem] border-2 border-[#E3D8DC] focus-within:border-transparent focus-within:bg-[#f3f1ee66] transition"
               >
 
                 {
@@ -490,8 +484,8 @@ const ChatArea = () => {
                       }
                     }
                   }}
-                  placeholder="Ask anything.."
-                  className="w-full  text-sm text-[#333131] bg-transparent leading-relaxed font-medium pb-0 min-h-32 resize-none placeholder:text-neutral-150 focus:outline-none"
+                  placeholder="Ask Insight agent anything.."
+                  className="w-full  text-sm text-[#333131] bg-transparent leading-relaxed font-medium pb-0 min-h-20 resize-none placeholder:text-neutral-150 focus:outline-none"
                 ></textarea>
 
                 <div className="flex items-center justify-between">
@@ -503,13 +497,13 @@ const ChatArea = () => {
                             <button
                               onClick={() => setDeepResearch(!deepResearch)}
                               className={cn(
-                                "flex items-center justify-center gap-2 rounded-[0.5rem] bg-primary-light sm:px-3 sm:py-1.5 p-2 text-sm font-normal text-primary-300 transition-colors",
+                                "flex items-center justify-center gap-2 border border-[#E3D8DC] rounded-[0.5rem] bg-white sm:px-3 sm:py-1.5 p-2 text-sm font-normal text-primary-300 transition-colors",
                                 deepResearch && "bg-primary-main text-white"
                               )}
                               aria-checked={deepResearch}
                               role="checkbox"
                             >
-                              <PiPlanetLight className="size-5 flex-shrink-0" />
+                              <PiPlanetLight className="size-4 flex-shrink-0" />
 
 
                             </button>
@@ -525,7 +519,7 @@ const ChatArea = () => {
 
                       <div className="">
                         <Select value={currentSearchMode} onValueChange={handleAgentChange}>
-                          <SelectTrigger className="w-[120px]">
+                          <SelectTrigger className="min-w-28 max-w-28 sm:max-w-36 border border-[#E3D8DC] focus:border-primary-main">
                             <SelectValue placeholder="Select Agent" />
                           </SelectTrigger>
                           <SelectContent>
@@ -597,7 +591,7 @@ const ChatArea = () => {
             <div className="flex items-center gap-x-8 text-[0.75rem] font-normal text-#020202 justify-center">
               <p>Blog</p>
               {/* <Select>
-                <SelectTrigger className="w-fit border-none">
+                <SelectTrigger className="w-fit min-w-28 sm:max-w-36 border-none">
                   <SelectValue placeholder="Select Language" />
                 </SelectTrigger>
                 <SelectContent>

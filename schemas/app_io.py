@@ -144,7 +144,7 @@ class OnboardingRequest(BaseModel):
     role: Optional[RoleEnum]
     finance_experience: Optional[FinanceExperienceEnum]
     learning_style: Optional[LearningStyleEnum]
-    tools_used: Optional[ToolsUsedEnum]
+    tools_used: Optional[List[ToolsUsedEnum]]
     insight_goal: Optional[str] = None
 
 
@@ -153,7 +153,7 @@ class Onboarding(Document):
     role: Optional[RoleEnum]
     finance_experience: Optional[FinanceExperienceEnum]
     learning_style: Optional[LearningStyleEnum]
-    tools_used: Optional[ToolsUsedEnum]
+    tools_used: Optional[List[ToolsUsedEnum]]
     insight_goal: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

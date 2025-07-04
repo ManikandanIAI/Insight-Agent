@@ -530,7 +530,7 @@ async def query_and_stream(query: QueryRequestModel, request: Request, bgt: Back
                         yield f"data: {json.dumps({'type': 'metadata', 'data': store_data.get('metadata',None)})}\n\n".encode('utf-8')
 
                         if not error_flag:
-                            yield f"data: {json.dumps({'type': 'complete', 'message_id': message_id, 'notification': True})}\n\n".encode('utf-8')
+                            yield f"data: {json.dumps({'type': 'complete', 'message_id': message_id, 'notification': data_to_send.get('notification', True), 'suggestions': data_to_send.get('suggestions', True)})}\n\n".encode('utf-8')
                         
                         if store_data['logs']:
                             bgt.add_task(mongodb.append_graph_log_to_mongo, session_id, message_id, store_data['logs'])
@@ -542,7 +542,7 @@ async def query_and_stream(query: QueryRequestModel, request: Request, bgt: Back
                             yield f"data: {json.dumps({'type': 'metadata', 'data': data_to_send.get('metadata',None)})}\n\n".encode('utf-8')
 
                         if not error_flag:
-                            yield f"data: {json.dumps({'type': 'complete', 'message_id': message_id, 'notification': False})}\n\n".encode('utf-8')
+                            yield f"data: {json.dumps({'type': 'complete', 'message_id': message_id, 'notification': False, 'suggestions': False})}\n\n".encode('utf-8')
 
                         bgt.add_task(mongodb.append_graph_log_to_mongo, session_id, message_id, data_to_send['logs'])
                         break

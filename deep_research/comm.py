@@ -105,7 +105,7 @@ async def process_research_query_functional(user_id: str, session_id: str, user_
                 }
                 await mongodb.store_deep_research_state(user_id, session_id, message_id, research_state_data)
 
-            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}}
+            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}, 'notification': False, 'suggestions': False}
 
         elif 'follow_up_question' in previous_state and 'original_user_query' in previous_state:
             current_query = f"{previous_state['original_user_query']}\nClarification question: {previous_state['follow_up_question']}\nUser response: {user_query}\n\n"
@@ -290,7 +290,7 @@ async def process_research_query_functional(user_id: str, session_id: str, user_
 
             yield final_data_event
 
-            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}}
+            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}, 'notification': True, 'suggestions': True}
 
         else:
             raise RuntimeError("Error in loading deep research state")
@@ -308,7 +308,7 @@ async def process_research_query_functional(user_id: str, session_id: str, user_
             store_research_message(error_event)
             await mongodb.update_session_history_in_db(session_id, user_id, message_id, previous_state['original_user_query'] or user_query, markdown_text or error_msg, local_time, timezone)
 
-            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}}
+            yield {"store_data": {"messages": current_messages_log, 'logs': message_logs, 'metadata': query_metadata}, 'notification': False, 'suggestions': False}
 
     finally:
         pass

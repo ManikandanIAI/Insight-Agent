@@ -58,3 +58,5 @@ weasyprint==62.3
 webdriver-manager==4.0.2
 yahooquery==2.4.1
 yfinance==0.2.61
+janus==2.0.0
+smolagents[litellm]==1.19.0

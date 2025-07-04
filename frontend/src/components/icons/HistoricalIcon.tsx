@@ -3,13 +3,15 @@ import React from 'react'
 interface IconProps {
     isActive?: boolean;
     className?: string;
+    width?: string | number;
+    height?:string | number;
 }
 
-const HistoricalIcon: React.FC<IconProps> = ({ isActive, className }) => {
+const HistoricalIcon: React.FC<IconProps> = ({ isActive, className,width,height }) => {
     const strokeColor = isActive ? '#954767' : '#686868';
     return (
 
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" width={width||"13"} height={height||"13"} viewBox="0 0 13 13" fill="none">
             <g clipPath="url(#clip0_2076_6064)">
                 <mask id="path-1-outside-1_2076_6064" maskUnits="userSpaceOnUse" x="1.06836" y="-0.206055" width="10" height="12" fill="black">
                     <rect fill="white" x="1.06836" y="-0.206055" width="10" height="12" />

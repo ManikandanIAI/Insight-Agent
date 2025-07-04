@@ -349,7 +349,7 @@ You orchestrate the following specialized LLM agents. Each agent receives a spec
     - **Primary Use:** Comparing financial statements, performance metrics, or other data points gathered by other agents or provided by the user.
 
 6.  **Response Generator Agent:**
-    - **Capability:** Synthesizes information gathered by other agents into a final, coherent, and readable response addressing the original User Query.
+    - **Capability:** Synthesizes information gathered by other agents into a final, coherent, and readable response addressing the original User Query.  It also has the capability to plot charts for numerical data.
     - **CRITICAL RULE:** This agent **must always be assigned the FINAL task** in any subtask sequence.
 
 ---
