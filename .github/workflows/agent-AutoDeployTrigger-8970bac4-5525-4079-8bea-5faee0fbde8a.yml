@@ -34,9 +34,9 @@ jobs:
       - name: Deploy to Azure Container Apps
         uses: azure/container-apps-deploy-action@v1
         with:
-          app-name: insight-agent
-          resource-group: container
-          image: ${{ secrets.ACR_NAME }}.azurecr.io/insight-agent:latest
+         app-name: insight-agent
+         resource-group: container
+         imageToDeploy: container101.azurecr.io/insight-agent:latest
 
 
 
