@@ -24,7 +24,8 @@ jobs:
 
       - name: Push Docker image to ACR
         run: |
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login container101.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password-stdin
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_NAME }}.azurecr.io \
+            --username ${{ secrets.ACR_USERNAME }} --password-stdin
           docker push container101.azurecr.io/insight-agent:latest
 
       - name: Deploy to Azure Container Apps
